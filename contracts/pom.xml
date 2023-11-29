@@ -9,16 +9,11 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>contracts</artifactId>
+    <artifactId>transferservice-contracts</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <build>
-        <finalName>transferservice-${project.artifactId}-${version}</finalName>
-    </build>
-
 </project>

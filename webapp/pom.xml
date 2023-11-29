@@ -9,7 +9,7 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>webapp</artifactId>
+    <artifactId>transferservice-webapp</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -28,12 +28,12 @@
         </dependency>
         <dependency>
             <groupId>ru.netology.transferservice</groupId>
-            <artifactId>contracts</artifactId>
+            <artifactId>transferservice-contracts</artifactId>
             <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>ru.netology.transferservice</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>transferservice-core</artifactId>
             <version>1.0.0</version>
         </dependency>
 
@@ -51,7 +51,6 @@
     </dependencies>
 
     <build>
-        <finalName>transferservice-${project.artifactId}-${version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
