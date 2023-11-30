@@ -5,4 +5,10 @@ import ru.netology.transferservice.contracts.entity.TransactionStatusCode;
 
 public interface TransactionStatusFactory {
     TransactionStatus create(TransactionStatusCode code, String message);
+
+    default TransactionStatus create(TransactionStatusCode code) {
+        return create(code, null);
+    }
+
+    ;
 }

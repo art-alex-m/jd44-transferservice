@@ -14,4 +14,6 @@ public interface AccountAllocationService {
      * @return В случае успеха - объект резервирования, null - резервирование не удалось
      */
     AccountAllocation allocate(UUID transactionId, String accountNumber, long amount);
+
+    boolean delete(AccountAllocation allocation);
 }

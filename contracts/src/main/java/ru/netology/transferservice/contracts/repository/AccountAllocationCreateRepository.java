@@ -6,4 +6,6 @@ public interface AccountAllocationCreateRepository {
     long getAllocatedSum(String accountNumber);
 
     boolean store(AccountAllocation allocation);
+
+    boolean delete(AccountAllocation allocation);
 }
