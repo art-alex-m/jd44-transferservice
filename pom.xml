@@ -19,6 +19,7 @@
         <module>contracts</module>
         <module>core</module>
         <module>webapp</module>
+        <module>demo</module>
     </modules>
 
     <properties>

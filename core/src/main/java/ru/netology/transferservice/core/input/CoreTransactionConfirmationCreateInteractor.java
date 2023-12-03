@@ -1,6 +1,8 @@
 package ru.netology.transferservice.core.input;
 
 import ru.netology.transferservice.contracts.entity.Confirmation;
+import ru.netology.transferservice.contracts.event.ConfirmationIsCreated;
+import ru.netology.transferservice.contracts.event.TransferserviceEventPublisher;
 import ru.netology.transferservice.contracts.exception.TransactionException;
 import ru.netology.transferservice.contracts.exception.TransactionExceptionCode;
 import ru.netology.transferservice.contracts.factory.ConfirmationFactory;
@@ -14,10 +16,13 @@ public class CoreTransactionConfirmationCreateInteractor implements TransactionC
     private final ConfirmationFactory confirmationFactory;
     private final ConfirmationCreateRepository confirmationCreateRepository;
 
+    private final TransferserviceEventPublisher eventPublisher;
+
     public CoreTransactionConfirmationCreateInteractor(ConfirmationFactory confirmationFactory,
-            ConfirmationCreateRepository confirmationCreateRepository) {
+            ConfirmationCreateRepository confirmationCreateRepository, TransferserviceEventPublisher eventPublisher) {
         this.confirmationFactory = confirmationFactory;
         this.confirmationCreateRepository = confirmationCreateRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -27,6 +32,8 @@ public class CoreTransactionConfirmationCreateInteractor implements TransactionC
         if (confirmation == null || !confirmationCreateRepository.store(confirmation)) {
             throw new TransactionException(TransactionExceptionCode.CANNOT_CREATE_CONFIRMATION);
         }
+
+        eventPublisher.publish(new ConfirmationIsCreated(confirmation));
 
         return new CoreTransactionConfirmationCreateResponse(confirmation);
     }

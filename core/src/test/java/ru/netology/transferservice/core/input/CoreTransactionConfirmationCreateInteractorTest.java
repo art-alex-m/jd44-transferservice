@@ -3,6 +3,8 @@ package ru.netology.transferservice.core.input;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import ru.netology.transferservice.contracts.entity.Confirmation;
+import ru.netology.transferservice.contracts.event.ConfirmationIsCreated;
+import ru.netology.transferservice.contracts.event.TransferserviceEventPublisher;
 import ru.netology.transferservice.contracts.exception.TransactionException;
 import ru.netology.transferservice.contracts.exception.TransactionExceptionCode;
 import ru.netology.transferservice.contracts.factory.ConfirmationFactory;
@@ -24,8 +26,9 @@ class CoreTransactionConfirmationCreateInteractorTest {
         TransactionConfirmationCreateRequest request = Mockito.mock(TransactionConfirmationCreateRequest.class);
         ConfirmationFactory confirmationFactory = Mockito.mock(ConfirmationFactory.class);
         ConfirmationCreateRepository confirmationCreateRepository = Mockito.mock(ConfirmationCreateRepository.class);
+        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
         TransactionConfirmationCreateInput sut = new CoreTransactionConfirmationCreateInteractor(confirmationFactory,
-                confirmationCreateRepository);
+                confirmationCreateRepository, eventPublisher);
 
         TransactionException result = null;
         try {
@@ -39,6 +42,7 @@ class CoreTransactionConfirmationCreateInteractorTest {
         assertEquals(TransactionExceptionCode.CANNOT_CREATE_CONFIRMATION.getMessage(), result.getMessage());
         Mockito.verify(confirmationFactory, Mockito.times(1)).create(Mockito.any());
         Mockito.verify(confirmationCreateRepository, Mockito.never()).store(Mockito.any(Confirmation.class));
+        Mockito.verify(eventPublisher, Mockito.never()).publish(Mockito.any(ConfirmationIsCreated.class));
     }
 
     @Test
@@ -51,8 +55,9 @@ class CoreTransactionConfirmationCreateInteractorTest {
         Mockito.when(confirmationFactory.create(transactionId)).thenReturn(confirmation);
         ConfirmationCreateRepository confirmationCreateRepository = Mockito.mock(ConfirmationCreateRepository.class);
         Mockito.when(confirmationCreateRepository.store(Mockito.any(Confirmation.class))).thenReturn(false);
+        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
         TransactionConfirmationCreateInput sut = new CoreTransactionConfirmationCreateInteractor(confirmationFactory,
-                confirmationCreateRepository);
+                confirmationCreateRepository, eventPublisher);
 
         TransactionException result = null;
         try {
@@ -66,6 +71,7 @@ class CoreTransactionConfirmationCreateInteractorTest {
         assertEquals(TransactionExceptionCode.CANNOT_CREATE_CONFIRMATION.getMessage(), result.getMessage());
         Mockito.verify(confirmationFactory, Mockito.times(1)).create(transactionId);
         Mockito.verify(confirmationCreateRepository, Mockito.times(1)).store(confirmation);
+        Mockito.verify(eventPublisher, Mockito.never()).publish(Mockito.any(ConfirmationIsCreated.class));
     }
 
     @Test
@@ -78,8 +84,9 @@ class CoreTransactionConfirmationCreateInteractorTest {
         Mockito.when(confirmationFactory.create(transactionId)).thenReturn(confirmation);
         ConfirmationCreateRepository confirmationCreateRepository = Mockito.mock(ConfirmationCreateRepository.class);
         Mockito.when(confirmationCreateRepository.store(Mockito.any(Confirmation.class))).thenReturn(true);
+        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
         TransactionConfirmationCreateInput sut = new CoreTransactionConfirmationCreateInteractor(confirmationFactory,
-                confirmationCreateRepository);
+                confirmationCreateRepository, eventPublisher);
 
         TransactionConfirmationCreateResponse result = sut.create(request);
 
@@ -87,5 +94,6 @@ class CoreTransactionConfirmationCreateInteractorTest {
         assertEquals(confirmation.getCode(), result.getCode());
         Mockito.verify(confirmationFactory, Mockito.times(1)).create(transactionId);
         Mockito.verify(confirmationCreateRepository, Mockito.times(1)).store(confirmation);
+        Mockito.verify(eventPublisher, Mockito.times(1)).publish(Mockito.any(ConfirmationIsCreated.class));
     }
 }
