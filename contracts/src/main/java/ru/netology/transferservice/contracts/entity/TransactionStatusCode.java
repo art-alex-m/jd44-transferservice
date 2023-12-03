@@ -6,6 +6,7 @@ package ru.netology.transferservice.contracts.entity;
 public enum TransactionStatusCode {
     NEW("new"),
     SUCCESS("success"),
+    CONFIRMED("confirmed"),
     ERROR("error");
 
     public final String code;

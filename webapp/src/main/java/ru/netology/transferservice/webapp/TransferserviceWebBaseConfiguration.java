@@ -9,6 +9,7 @@ import ru.netology.transferservice.contracts.event.TransferserviceEventPublisher
 import ru.netology.transferservice.contracts.factory.ConfirmationFactory;
 import ru.netology.transferservice.contracts.factory.TransactionStatusFactory;
 import ru.netology.transferservice.contracts.input.TransactionConfirmationCreateInput;
+import ru.netology.transferservice.contracts.input.TransactionConfirmationInput;
 import ru.netology.transferservice.contracts.input.TransactionCreateInput;
 import ru.netology.transferservice.contracts.repository.*;
 import ru.netology.transferservice.contracts.service.AccountAllocationService;
@@ -18,6 +19,7 @@ import ru.netology.transferservice.contracts.service.CommissionService;
 import ru.netology.transferservice.core.factory.CoreConfirmationFactory;
 import ru.netology.transferservice.core.factory.CoreTransactionStatusFactory;
 import ru.netology.transferservice.core.input.CoreTransactionConfirmationCreateInteractor;
+import ru.netology.transferservice.core.input.CoreTransactionConfirmationInteractor;
 import ru.netology.transferservice.core.input.CoreTransactionCreateInteractor;
 import ru.netology.transferservice.core.service.CoreAccountAllocationService;
 import ru.netology.transferservice.core.service.CoreCardReadService;
@@ -51,6 +53,17 @@ public class TransferserviceWebBaseConfiguration {
     ) {
         return new CoreTransactionConfirmationCreateInteractor(confirmationFactory, appConfirmationRepository,
                 eventPublisher);
+    }
+
+    @Bean
+    public TransactionConfirmationInput transactionConfirmationInput(
+            TransactionConfirmRepository appTransactionRepository,
+            ConfirmationConfirmRepository appConfirmationRepository,
+            TransactionStatusFactory transactionStatusFactory,
+            TransferserviceEventPublisher eventPublisher
+    ) {
+        return new CoreTransactionConfirmationInteractor(appTransactionRepository, appConfirmationRepository,
+                transactionStatusFactory, eventPublisher);
     }
 
     @Bean
