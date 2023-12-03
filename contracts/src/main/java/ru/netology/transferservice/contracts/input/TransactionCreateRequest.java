@@ -8,7 +8,7 @@ public interface TransactionCreateRequest {
 
     String getCardFromValidTill();
 
-    String geCardFromCvv();
+    String getCardFromCvv();
 
     String getCardToNumber();
 

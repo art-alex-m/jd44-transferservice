@@ -59,7 +59,7 @@ public class CoreTransactionCreateInteractor implements TransactionCreateInput {
                 .setCurrency(request.getCurrency());
 
         /// Проверить карточку списания
-        CardUserInput userInput = new CoreCardUserInput(request.geCardFromCvv(), request.getCardFromValidTill());
+        CardUserInput userInput = new CoreCardUserInput(request.getCardFromCvv(), request.getCardFromValidTill());
         if (!cardValidationService.isValid(cardFrom, userInput)) {
             throw new TransactionException(TransactionExceptionCode.CARD_FROM_NOT_VALID);
         }
