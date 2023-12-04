@@ -1,11 +1,17 @@
 package ru.netology.transferservice.core.input;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.netology.transferservice.contracts.entity.AccountAllocation;
 import ru.netology.transferservice.contracts.entity.Card;
 import ru.netology.transferservice.contracts.entity.Transaction;
 import ru.netology.transferservice.contracts.entity.TransactionStatusCode;
+import ru.netology.transferservice.contracts.event.TransactionEvent;
 import ru.netology.transferservice.contracts.event.TransactionIsCreated;
 import ru.netology.transferservice.contracts.event.TransferserviceEventPublisher;
 import ru.netology.transferservice.contracts.exception.TransactionException;
@@ -23,25 +29,38 @@ import ru.netology.transferservice.core.entity.CoreCard;
 import ru.netology.transferservice.core.entity.CoreCommission;
 import ru.netology.transferservice.core.factory.CoreTransactionStatusFactory;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MockitoExtension.class)
 class CoreTransactionCreateInteractorTest {
+
+    private final TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
+    @Mock
+    private TransactionCreateRequest request;
+    @Mock
+    private CardReadService cardReadService;
+    @Mock
+    private CommissionService commissionService;
+    @Mock
+    private AccountAllocationService allocationService;
+    @Mock
+    private TransferserviceEventPublisher eventPublisher;
+    @Mock
+    private TransactionCreateRepository transactionCreateRepository;
+    @Mock
+    private CardValidationService cardValidationService;
+    private TransactionCreateInput sut;
+
+    @BeforeEach
+    void setUp() {
+        sut = new CoreTransactionCreateInteractor(cardReadService, commissionService, allocationService, eventPublisher,
+                transactionCreateRepository, statusFactory, cardValidationService);
+    }
+
     @Test
     void whenCardFromNotFound_thenNotFountException() {
-        TransactionCreateRequest request = Mockito.mock(TransactionCreateRequest.class);
         Mockito.when(request.getCardFromNumber()).thenReturn("1234");
-        Mockito.when(request.getCardToNumber()).thenReturn("4321");
-        CardReadService cardReadService = Mockito.mock(CardReadService.class);
         Mockito.when(cardReadService.getCardByNumber("1234")).thenReturn(null);
-        CommissionService commissionService = Mockito.mock(CommissionService.class);
-        AccountAllocationService allocationService = Mockito.mock(AccountAllocationService.class);
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionCreateRepository transactionCreateRepository = Mockito.mock(TransactionCreateRepository.class);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        CardValidationService cardValidationService = Mockito.mock(CardValidationService.class);
-        TransactionCreateInput sut = new CoreTransactionCreateInteractor(cardReadService, commissionService,
-                allocationService, eventPublisher, transactionCreateRepository, statusFactory, cardValidationService);
 
         TransactionException result = null;
         try {
@@ -65,20 +84,10 @@ class CoreTransactionCreateInteractorTest {
 
     @Test
     void whenCardToNotFound_thenNotFountException() {
-        TransactionCreateRequest request = Mockito.mock(TransactionCreateRequest.class);
         Mockito.when(request.getCardFromNumber()).thenReturn("1234");
         Mockito.when(request.getCardToNumber()).thenReturn("4321");
-        CardReadService cardReadService = Mockito.mock(CardReadService.class);
         Mockito.when(cardReadService.getCardByNumber("1234")).thenReturn(Mockito.mock(Card.class));
         Mockito.when(cardReadService.getCardByNumber("4321")).thenReturn(null);
-        CommissionService commissionService = Mockito.mock(CommissionService.class);
-        AccountAllocationService allocationService = Mockito.mock(AccountAllocationService.class);
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionCreateRepository transactionCreateRepository = Mockito.mock(TransactionCreateRepository.class);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        CardValidationService cardValidationService = Mockito.mock(CardValidationService.class);
-        TransactionCreateInput sut = new CoreTransactionCreateInteractor(cardReadService, commissionService,
-                allocationService, eventPublisher, transactionCreateRepository, statusFactory, cardValidationService);
 
         TransactionException result = null;
         try {
@@ -101,21 +110,11 @@ class CoreTransactionCreateInteractorTest {
 
     @Test
     void whenCardFromNotValid_thenNotValidException() {
-        TransactionCreateRequest request = Mockito.mock(TransactionCreateRequest.class);
         Mockito.when(request.getCardFromNumber()).thenReturn("1234");
         Mockito.when(request.getCardToNumber()).thenReturn("4321");
-        CardReadService cardReadService = Mockito.mock(CardReadService.class);
         Mockito.when(cardReadService.getCardByNumber("1234")).thenReturn(Mockito.mock(Card.class));
         Mockito.when(cardReadService.getCardByNumber("4321")).thenReturn(Mockito.mock(Card.class));
-        CommissionService commissionService = Mockito.mock(CommissionService.class);
-        AccountAllocationService allocationService = Mockito.mock(AccountAllocationService.class);
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionCreateRepository transactionCreateRepository = Mockito.mock(TransactionCreateRepository.class);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        CardValidationService cardValidationService = Mockito.mock(CardValidationService.class);
         Mockito.when(cardValidationService.isValid(Mockito.any(), Mockito.any())).thenReturn(false);
-        TransactionCreateInput sut = new CoreTransactionCreateInteractor(cardReadService, commissionService,
-                allocationService, eventPublisher, transactionCreateRepository, statusFactory, cardValidationService);
 
         TransactionException result = null;
         try {
@@ -139,25 +138,15 @@ class CoreTransactionCreateInteractorTest {
 
     @Test
     void whenAllocationFail_thenCannotAllocateException() {
-        TransactionCreateRequest request = Mockito.mock(TransactionCreateRequest.class);
         Mockito.when(request.getAmount()).thenReturn(1000L);
         Mockito.when(request.getCurrency()).thenReturn("RUB");
         Mockito.when(request.getCardFromNumber()).thenReturn("1234");
         Mockito.when(request.getCardToNumber()).thenReturn("4321");
-        CardReadService cardReadService = Mockito.mock(CardReadService.class);
         Mockito.when(cardReadService.getCardByNumber("1234")).thenReturn(getTestCard());
         Mockito.when(cardReadService.getCardByNumber("4321")).thenReturn(Mockito.mock(Card.class));
-        CommissionService commissionService = Mockito.mock(CommissionService.class);
         Mockito.when(commissionService.compute(Mockito.any(Card.class), Mockito.any(Card.class), Mockito.anyLong(), Mockito.anyString())).thenReturn(new CoreCommission(10));
-        AccountAllocationService allocationService = Mockito.mock(AccountAllocationService.class);
         Mockito.when(allocationService.allocate(Mockito.any(), Mockito.anyString(), Mockito.anyLong())).thenReturn(null);
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionCreateRepository transactionCreateRepository = Mockito.mock(TransactionCreateRepository.class);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        CardValidationService cardValidationService = Mockito.mock(CardValidationService.class);
         Mockito.when(cardValidationService.isValid(Mockito.any(), Mockito.any())).thenReturn(true);
-        TransactionCreateInput sut = new CoreTransactionCreateInteractor(cardReadService, commissionService,
-                allocationService, eventPublisher, transactionCreateRepository, statusFactory, cardValidationService);
 
         TransactionException result = null;
         try {
@@ -180,26 +169,16 @@ class CoreTransactionCreateInteractorTest {
 
     @Test
     void whenTransactionStoreFail_thenCannotCreateTransactionException() {
-        TransactionCreateRequest request = Mockito.mock(TransactionCreateRequest.class);
         Mockito.when(request.getAmount()).thenReturn(1000L);
         Mockito.when(request.getCurrency()).thenReturn("RUB");
         Mockito.when(request.getCardFromNumber()).thenReturn("1234");
         Mockito.when(request.getCardToNumber()).thenReturn("4321");
-        CardReadService cardReadService = Mockito.mock(CardReadService.class);
         Mockito.when(cardReadService.getCardByNumber("1234")).thenReturn(getTestCard());
         Mockito.when(cardReadService.getCardByNumber("4321")).thenReturn(Mockito.mock(Card.class));
-        CommissionService commissionService = Mockito.mock(CommissionService.class);
         Mockito.when(commissionService.compute(Mockito.any(Card.class), Mockito.any(Card.class), Mockito.anyLong(), Mockito.anyString())).thenReturn(new CoreCommission(10));
-        AccountAllocationService allocationService = Mockito.mock(AccountAllocationService.class);
         Mockito.when(allocationService.allocate(Mockito.any(), Mockito.anyString(), Mockito.anyLong())).thenReturn(Mockito.mock(AccountAllocation.class));
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionCreateRepository transactionCreateRepository = Mockito.mock(TransactionCreateRepository.class);
         Mockito.when(transactionCreateRepository.store(Mockito.any(Transaction.class))).thenReturn(false);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        CardValidationService cardValidationService = Mockito.mock(CardValidationService.class);
         Mockito.when(cardValidationService.isValid(Mockito.any(), Mockito.any())).thenReturn(true);
-        TransactionCreateInput sut = new CoreTransactionCreateInteractor(cardReadService, commissionService,
-                allocationService, eventPublisher, transactionCreateRepository, statusFactory, cardValidationService);
 
         TransactionException result = null;
         try {
@@ -223,26 +202,17 @@ class CoreTransactionCreateInteractorTest {
 
     @Test
     void whenSuccessRequest_thenSuccess() {
-        TransactionCreateRequest request = Mockito.mock(TransactionCreateRequest.class);
         Mockito.when(request.getAmount()).thenReturn(1000L);
         Mockito.when(request.getCurrency()).thenReturn("RUB");
         Mockito.when(request.getCardFromNumber()).thenReturn("1234");
         Mockito.when(request.getCardToNumber()).thenReturn("4321");
-        CardReadService cardReadService = Mockito.mock(CardReadService.class);
         Mockito.when(cardReadService.getCardByNumber("1234")).thenReturn(getTestCard());
         Mockito.when(cardReadService.getCardByNumber("4321")).thenReturn(Mockito.mock(Card.class));
-        CommissionService commissionService = Mockito.mock(CommissionService.class);
         Mockito.when(commissionService.compute(Mockito.any(Card.class), Mockito.any(Card.class), Mockito.anyLong(), Mockito.anyString())).thenReturn(new CoreCommission(10));
-        AccountAllocationService allocationService = Mockito.mock(AccountAllocationService.class);
         Mockito.when(allocationService.allocate(Mockito.any(), Mockito.anyString(), Mockito.anyLong())).thenReturn(Mockito.mock(AccountAllocation.class));
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionCreateRepository transactionCreateRepository = Mockito.mock(TransactionCreateRepository.class);
         Mockito.when(transactionCreateRepository.store(Mockito.any(Transaction.class))).thenReturn(true);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        CardValidationService cardValidationService = Mockito.mock(CardValidationService.class);
         Mockito.when(cardValidationService.isValid(Mockito.any(), Mockito.any())).thenReturn(true);
-        TransactionCreateInput sut = new CoreTransactionCreateInteractor(cardReadService, commissionService,
-                allocationService, eventPublisher, transactionCreateRepository, statusFactory, cardValidationService);
+        ArgumentCaptor<TransactionEvent> eventCaptor = ArgumentCaptor.forClass(TransactionEvent.class);
 
         TransactionCreateResponse result = sut.create(request);
 
@@ -255,9 +225,15 @@ class CoreTransactionCreateInteractorTest {
         Mockito.verify(commissionService, Mockito.times(1)).compute(Mockito.any(), Mockito.any(), Mockito.anyLong(), Mockito.anyString());
         Mockito.verify(allocationService, Mockito.times(1)).allocate(Mockito.any(), Mockito.anyString(), Mockito.anyLong());
         Mockito.verify(allocationService, Mockito.never()).delete(Mockito.any());
-        Mockito.verify(eventPublisher, Mockito.times(1)).publish(Mockito.any(TransactionIsCreated.class));
         Mockito.verify(transactionCreateRepository, Mockito.times(1)).store(Mockito.any());
         Mockito.verify(cardValidationService, Mockito.times(1)).isValid(Mockito.any(), Mockito.any());
+        Mockito.verify(eventPublisher, Mockito.times(1)).publish(eventCaptor.capture());
+        TransactionEvent capturedEvent = eventCaptor.getValue();
+        assertNotNull(capturedEvent);
+        assertInstanceOf(TransactionIsCreated.class, capturedEvent);
+        assertNotNull(capturedEvent.getTransaction());
+        assertEquals(result.getTransactionId(), capturedEvent.getTransaction().getId());
+        assertEquals(result.getStatus(), capturedEvent.getTransaction().getStatus());
     }
 
     private Card getTestCard() {

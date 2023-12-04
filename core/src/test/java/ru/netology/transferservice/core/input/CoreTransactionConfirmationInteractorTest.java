@@ -1,16 +1,21 @@
 package ru.netology.transferservice.core.input;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.netology.transferservice.contracts.entity.Confirmation;
 import ru.netology.transferservice.contracts.entity.Transaction;
 import ru.netology.transferservice.contracts.entity.TransactionStatusCode;
+import ru.netology.transferservice.contracts.event.TransactionEvent;
 import ru.netology.transferservice.contracts.event.TransactionIsConfirmed;
 import ru.netology.transferservice.contracts.event.TransferserviceEventPublisher;
 import ru.netology.transferservice.contracts.exception.TransactionException;
 import ru.netology.transferservice.contracts.exception.TransactionExceptionCode;
 import ru.netology.transferservice.contracts.factory.TransactionStatusFactory;
-import ru.netology.transferservice.contracts.input.TransactionConfirmationInput;
 import ru.netology.transferservice.contracts.input.TransactionConfirmationRequest;
 import ru.netology.transferservice.contracts.input.TransactionConfirmationResponse;
 import ru.netology.transferservice.contracts.repository.ConfirmationConfirmRepository;
@@ -20,23 +25,36 @@ import ru.netology.transferservice.core.factory.CoreTransactionStatusFactory;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MockitoExtension.class)
 class CoreTransactionConfirmationInteractorTest {
+
+    private final TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
+    @Mock
+    private TransactionConfirmationRequest request;
+    @Mock
+    private Transaction transaction;
+    @Mock
+    private TransactionConfirmRepository transactionConfirmRepository;
+    @Mock
+    private ConfirmationConfirmRepository confirmRepository;
+    @Mock
+    private TransferserviceEventPublisher eventPublisher;
+
+    private CoreTransactionConfirmationInteractor sut;
+
+    @BeforeEach
+    void setUp() {
+        sut = new CoreTransactionConfirmationInteractor(transactionConfirmRepository, confirmRepository, statusFactory,
+                eventPublisher);
+    }
 
     @Test
     void whenTransactionNotFound_thenThrowTransactionException() {
         UUID transactionId = UUID.randomUUID();
-        TransactionConfirmationRequest request = Mockito.mock(TransactionConfirmationRequest.class);
         Mockito.when(request.getTransactionId()).thenReturn(transactionId);
-        TransactionConfirmRepository transactionConfirmRepository = Mockito.mock(TransactionConfirmRepository.class);
         Mockito.when(transactionConfirmRepository.getById(transactionId)).thenReturn(null);
-        ConfirmationConfirmRepository confirmRepository = Mockito.mock(ConfirmationConfirmRepository.class);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionConfirmationInput sut = new CoreTransactionConfirmationInteractor(transactionConfirmRepository,
-                confirmRepository, statusFactory, eventPublisher);
 
         TransactionException result = null;
         try {
@@ -57,18 +75,9 @@ class CoreTransactionConfirmationInteractorTest {
     @Test
     void whenConfirmationNotFound_thenThrowTransactionException() {
         UUID transactionId = UUID.randomUUID();
-        Transaction transaction = Mockito.mock(Transaction.class);
-        Mockito.when(transaction.getId()).thenReturn(transactionId);
-        TransactionConfirmationRequest request = Mockito.mock(TransactionConfirmationRequest.class);
         Mockito.when(request.getTransactionId()).thenReturn(transactionId);
-        TransactionConfirmRepository transactionConfirmRepository = Mockito.mock(TransactionConfirmRepository.class);
         Mockito.when(transactionConfirmRepository.getById(transactionId)).thenReturn(transaction);
-        ConfirmationConfirmRepository confirmRepository = Mockito.mock(ConfirmationConfirmRepository.class);
         Mockito.when(confirmRepository.findLastByTransactionId(transactionId)).thenReturn(null);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionConfirmationInput sut = new CoreTransactionConfirmationInteractor(transactionConfirmRepository,
-                confirmRepository, statusFactory, eventPublisher);
 
         TransactionException result = null;
         try {
@@ -90,20 +99,11 @@ class CoreTransactionConfirmationInteractorTest {
     @Test
     void whenConfirmationCodeNotValid_thenThrowTransactionException() {
         UUID transactionId = UUID.randomUUID();
-        Transaction transaction = Mockito.mock(Transaction.class);
-        Mockito.when(transaction.getId()).thenReturn(transactionId);
-        TransactionConfirmationRequest request = Mockito.mock(TransactionConfirmationRequest.class);
         Mockito.when(request.getTransactionId()).thenReturn(transactionId);
         Mockito.when(request.getCode()).thenReturn("321");
-        TransactionConfirmRepository transactionConfirmRepository = Mockito.mock(TransactionConfirmRepository.class);
         Mockito.when(transactionConfirmRepository.getById(transactionId)).thenReturn(transaction);
-        ConfirmationConfirmRepository confirmRepository = Mockito.mock(ConfirmationConfirmRepository.class);
         Confirmation confirmation = new CoreConfirmation("123", transactionId);
         Mockito.when(confirmRepository.findLastByTransactionId(transactionId)).thenReturn(confirmation);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionConfirmationInput sut = new CoreTransactionConfirmationInteractor(transactionConfirmRepository,
-                confirmRepository, statusFactory, eventPublisher);
 
         TransactionException result = null;
         try {
@@ -125,21 +125,13 @@ class CoreTransactionConfirmationInteractorTest {
     @Test
     void whenConfirmationValidButTransactionNotUpdated_thenThrowTransactionException() {
         UUID transactionId = UUID.randomUUID();
-        Transaction transaction = Mockito.mock(Transaction.class);
         Mockito.when(transaction.getId()).thenReturn(transactionId);
-        TransactionConfirmationRequest request = Mockito.mock(TransactionConfirmationRequest.class);
         Mockito.when(request.getTransactionId()).thenReturn(transactionId);
         Mockito.when(request.getCode()).thenReturn("123");
-        TransactionConfirmRepository transactionConfirmRepository = Mockito.mock(TransactionConfirmRepository.class);
         Mockito.when(transactionConfirmRepository.getById(transactionId)).thenReturn(transaction);
         Mockito.when(transactionConfirmRepository.update(Mockito.any(Transaction.class))).thenReturn(false);
-        ConfirmationConfirmRepository confirmRepository = Mockito.mock(ConfirmationConfirmRepository.class);
         Confirmation confirmation = new CoreConfirmation("123", transactionId);
         Mockito.when(confirmRepository.findLastByTransactionId(transactionId)).thenReturn(confirmation);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionConfirmationInput sut = new CoreTransactionConfirmationInteractor(transactionConfirmRepository,
-                confirmRepository, statusFactory, eventPublisher);
 
         TransactionException result = null;
         try {
@@ -161,21 +153,14 @@ class CoreTransactionConfirmationInteractorTest {
     @Test
     void whenConfirmationValid_thenSuccess() {
         UUID transactionId = UUID.randomUUID();
-        Transaction transaction = Mockito.mock(Transaction.class);
         Mockito.when(transaction.getId()).thenReturn(transactionId);
-        TransactionConfirmationRequest request = Mockito.mock(TransactionConfirmationRequest.class);
         Mockito.when(request.getTransactionId()).thenReturn(transactionId);
         Mockito.when(request.getCode()).thenReturn("123");
-        TransactionConfirmRepository transactionConfirmRepository = Mockito.mock(TransactionConfirmRepository.class);
         Mockito.when(transactionConfirmRepository.getById(transactionId)).thenReturn(transaction);
         Mockito.when(transactionConfirmRepository.update(Mockito.any(Transaction.class))).thenReturn(true);
-        ConfirmationConfirmRepository confirmRepository = Mockito.mock(ConfirmationConfirmRepository.class);
         Confirmation confirmation = new CoreConfirmation("123", transactionId);
         Mockito.when(confirmRepository.findLastByTransactionId(transactionId)).thenReturn(confirmation);
-        TransactionStatusFactory statusFactory = new CoreTransactionStatusFactory();
-        TransferserviceEventPublisher eventPublisher = Mockito.mock(TransferserviceEventPublisher.class);
-        TransactionConfirmationInput sut = new CoreTransactionConfirmationInteractor(transactionConfirmRepository,
-                confirmRepository, statusFactory, eventPublisher);
+        ArgumentCaptor<TransactionEvent> eventCaptor = ArgumentCaptor.forClass(TransactionEvent.class);
 
         TransactionConfirmationResponse result = sut.confirm(request);
 
@@ -187,6 +172,12 @@ class CoreTransactionConfirmationInteractorTest {
         Mockito.verify(transactionConfirmRepository, Mockito.times(1)).update(Mockito.any(Transaction.class));
         Mockito.verify(confirmRepository, Mockito.times(1)).findLastByTransactionId(Mockito.any(UUID.class));
         Mockito.verify(confirmRepository, Mockito.times(1)).delete(confirmation);
-        Mockito.verify(eventPublisher, Mockito.times(1)).publish(Mockito.any(TransactionIsConfirmed.class));
+        Mockito.verify(eventPublisher, Mockito.times(1)).publish(eventCaptor.capture());
+        TransactionEvent capturedEvent = eventCaptor.getValue();
+        assertNotNull(capturedEvent);
+        assertInstanceOf(TransactionIsConfirmed.class, capturedEvent);
+        assertNotNull(capturedEvent.getTransaction());
+        assertEquals(result.getTransactionId(), capturedEvent.getTransaction().getId());
+        assertEquals(result.getStatus(), capturedEvent.getTransaction().getStatus());
     }
 }
