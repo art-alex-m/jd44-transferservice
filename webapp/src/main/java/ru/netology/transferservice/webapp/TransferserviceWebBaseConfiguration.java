@@ -1,10 +1,13 @@
 package ru.netology.transferservice.webapp;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.web.context.annotation.ApplicationScope;
+import ru.netology.transferservice.contracts.entity.Transaction;
 import ru.netology.transferservice.contracts.event.TransferserviceEventPublisher;
 import ru.netology.transferservice.contracts.factory.ConfirmationFactory;
 import ru.netology.transferservice.contracts.factory.TransactionStatusFactory;
@@ -12,10 +15,7 @@ import ru.netology.transferservice.contracts.input.TransactionConfirmationCreate
 import ru.netology.transferservice.contracts.input.TransactionConfirmationInput;
 import ru.netology.transferservice.contracts.input.TransactionCreateInput;
 import ru.netology.transferservice.contracts.repository.*;
-import ru.netology.transferservice.contracts.service.AccountAllocationService;
-import ru.netology.transferservice.contracts.service.CardReadService;
-import ru.netology.transferservice.contracts.service.CardValidationService;
-import ru.netology.transferservice.contracts.service.CommissionService;
+import ru.netology.transferservice.contracts.service.*;
 import ru.netology.transferservice.core.factory.CoreConfirmationFactory;
 import ru.netology.transferservice.core.factory.CoreTransactionStatusFactory;
 import ru.netology.transferservice.core.input.CoreTransactionConfirmationCreateInteractor;
@@ -26,8 +26,13 @@ import ru.netology.transferservice.core.service.CoreCardReadService;
 import ru.netology.transferservice.core.service.CoreCardValidationService;
 import ru.netology.transferservice.core.service.CoreCommissionService;
 import ru.netology.transferservice.webapp.event.AppEventPublisher;
+import ru.netology.transferservice.webapp.service.AppTransactionCsvLogger;
+import ru.netology.transferservice.webapp.service.AppTransactionLoggerWorker;
 
+import java.io.File;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Configuration
 @Order(1000)
@@ -106,5 +111,23 @@ public class TransferserviceWebBaseConfiguration {
     @Bean
     public CommissionService commissionService() {
         return new CoreCommissionService();
+    }
+
+    @Bean
+    public TransactionLogger transactionLogger(
+            @Value("${transferservice.transaction.log.fileName}") String logFileName) {
+        return new AppTransactionCsvLogger(new File(logFileName));
+    }
+
+    @Bean
+    public BlockingQueue<Transaction> transactionsLogQueue(
+            @Value("${transferservice.transaction.logQueue.capacity:10000}") int capacity) {
+        return new LinkedBlockingQueue<>(capacity);
+    }
+
+    @Bean
+    @ApplicationScope
+    public CommandLineRunner appTransactionLoggerWorkerStarter(AppTransactionLoggerWorker appTransactionLoggerWorker) {
+        return args -> new Thread(appTransactionLoggerWorker, "transaction-log").start();
     }
 }

@@ -12,11 +12,11 @@ import ru.netology.transferservice.webapp.input.AppTransactionCreateRequest;
 import ru.netology.transferservice.webapp.input.AppTransactionCreateResponse;
 
 @RestController
-public class TransactionController {
+public class AppTransactionController {
     private final TransactionCreateInput transactionCreateInput;
     private final TransactionConfirmationInput transactionConfirmationInput;
 
-    public TransactionController(TransactionCreateInput transactionCreateInput,
+    public AppTransactionController(TransactionCreateInput transactionCreateInput,
                                  TransactionConfirmationInput transactionConfirmationInput) {
         this.transactionCreateInput = transactionCreateInput;
         this.transactionConfirmationInput = transactionConfirmationInput;

@@ -1,10 +1,10 @@
 package ru.netology.transferservice.webapp.input;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import ru.netology.transferservice.contracts.input.TransactionCreateRequest;
@@ -26,24 +26,24 @@ public class AppTransactionCreateRequest implements TransactionCreateRequest {
     private String cardToNumber;
 
     @NotNull
-    @Getter(AccessLevel.NONE)
-    private Amount amount;
+    @Valid
+    @JsonAlias("amount")
+    private Amount amountObject;
 
     @Override
     public String getCurrency() {
-        return amount.getCurrency();
+        return amountObject.getCurrency();
     }
 
     @Override
     public long getAmount() {
-        return amount.getValue();
+        return amountObject.getValue();
     }
 
     @AllArgsConstructor
     @Getter
     public static class Amount {
-        @NotEmpty
-        @Min(0)
+        @Positive
         private long value;
 
         @NotEmpty
