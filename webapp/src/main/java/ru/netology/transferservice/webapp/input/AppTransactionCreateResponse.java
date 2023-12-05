@@ -1,17 +1,10 @@
 package ru.netology.transferservice.webapp.input;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import ru.netology.transferservice.contracts.input.TransactionCreateResponse;
+import ru.netology.transferservice.webapp.model.AppResponse;
 
-import java.util.UUID;
-
-@AllArgsConstructor
-@Getter
-public class AppTransactionCreateResponse {
-    private final UUID operationId;
-
+public class AppTransactionCreateResponse extends AppResponse {
     public AppTransactionCreateResponse(TransactionCreateResponse response) {
-        this(response.getTransactionId());
+        super(response.getTransactionId());
     }
 }

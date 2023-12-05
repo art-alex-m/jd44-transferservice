@@ -42,13 +42,12 @@ public class AppTransactionCsvLogger implements TransactionLogger {
     @FieldNameConstants(asEnum = true)
     @AllArgsConstructor
     @Getter
-    private static class Item {
+    public static class Item {
         String loggedAt;
         String transactionId;
         String transactionCreatedAt;
         String accountCardFrom;
         String cardFromNumber;
-        String cardFromValidTill;
         String cardToNumber;
         long amount;
         long commission;
@@ -63,7 +62,6 @@ public class AppTransactionCsvLogger implements TransactionLogger {
                     transaction.getCreatedAt().toString(),
                     transaction.getCardFrom().getAccountNumber(),
                     transaction.getCardFrom().getNumber(),
-                    transaction.getCardFrom().getValidTill(),
                     transaction.getCardTo().getNumber(),
                     transaction.getAmount(),
                     transaction.getCommission().getAmount(),
@@ -75,7 +73,7 @@ public class AppTransactionCsvLogger implements TransactionLogger {
 
         Stream<Object> stream() {
             return Stream.of(loggedAt, transactionId, transactionCreatedAt, accountCardFrom, cardFromNumber,
-                    cardFromValidTill, cardToNumber, amount, commission, amountWithCommission, status, statusCreatedAt);
+                    cardToNumber, amount, commission, amountWithCommission, status, statusCreatedAt);
         }
     }
 }

@@ -9,6 +9,8 @@ import java.net.URI;
 
 public class ApiTestHelper {
 
+    public static final String DOCKER_TAG = "artalexm/transferservice:test";
+
     public static URI createTestUri(String path, int port) {
         return UriComponentsBuilder.newInstance()
                 .scheme("http")

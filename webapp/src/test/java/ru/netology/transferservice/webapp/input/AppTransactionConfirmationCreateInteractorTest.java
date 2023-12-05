@@ -20,9 +20,12 @@ class AppTransactionConfirmationCreateInteractorTest {
         Transaction transaction = Mockito.mock(Transaction.class);
         Mockito.when(transaction.getId()).thenReturn(transactionId);
         TransactionEvent transactionEvent = new TransactionIsCreated(transaction);
-        TransactionConfirmationCreateInput confirmationCreateInput = Mockito.mock(TransactionConfirmationCreateInput.class);
-        ArgumentCaptor<AppTransactionConfirmationCreateRequest> requestArgumentCaptor = ArgumentCaptor.forClass(AppTransactionConfirmationCreateRequest.class);
-        AppTransactionConfirmationCreateInteractor sut = new AppTransactionConfirmationCreateInteractor(confirmationCreateInput);
+        TransactionConfirmationCreateInput confirmationCreateInput = Mockito.mock(
+                TransactionConfirmationCreateInput.class);
+        ArgumentCaptor<AppTransactionConfirmationCreateRequest> requestArgumentCaptor = ArgumentCaptor.forClass(
+                AppTransactionConfirmationCreateRequest.class);
+        AppTransactionConfirmationCreateInteractor sut = new AppTransactionConfirmationCreateInteractor(
+                confirmationCreateInput);
 
         sut.handle(transactionEvent);
 
