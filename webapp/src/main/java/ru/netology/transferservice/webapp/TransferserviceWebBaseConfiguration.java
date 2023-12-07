@@ -6,7 +6,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.web.context.annotation.ApplicationScope;
 import ru.netology.transferservice.contracts.entity.Transaction;
 import ru.netology.transferservice.contracts.event.TransferserviceEventPublisher;
 import ru.netology.transferservice.contracts.factory.ConfirmationFactory;
@@ -126,7 +125,6 @@ public class TransferserviceWebBaseConfiguration {
     }
 
     @Bean
-    @ApplicationScope
     public CommandLineRunner appTransactionLoggerWorkerStarter(AppTransactionLoggerWorker appTransactionLoggerWorker) {
         return args -> new Thread(appTransactionLoggerWorker, "transaction-log").start();
     }

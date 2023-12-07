@@ -33,3 +33,6 @@ build:
 
 test-only:
 	./mvnw test
+
+run:
+	${JAVA_HOME}/bin/java -jar ./webapp/target/transferservice-webapp-${WEBAPP_VERSION}.jar

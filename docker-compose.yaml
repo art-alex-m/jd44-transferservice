@@ -1,0 +1,17 @@
+version: "3.6"
+
+services:
+  webapp:
+    image: ${DOCKER_IMAGE_NAME}:${WEBAPP_VERSION}
+    build:
+      context: ./webapp
+      args:
+        HOSTGROUP: ${HOSTGROUP}
+        HOSTUSER: ${HOSTUSER}
+        WEBAPP_VERSION: ${WEBAPP_VERSION}
+        DOCKER_IMAGE_EXPOSE: ${DOCKER_IMAGE_EXPOSE}
+    ports:
+      - ${HOSTPORT}:${DOCKER_IMAGE_EXPOSE}
+    environment:
+      TRANSFERSERVICE_TRANSACTION_CONFIRMATION_SIZE: 4
+      TRANSFERSERVICE_TRANSACTION_CONFIRMATION_TEMPLATE: "000000000000"
