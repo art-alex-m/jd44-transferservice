@@ -6,9 +6,9 @@ DOCKER_IMAGE_NAME:=artalexm/transferservice
 clean:
 	./mvnw clean
 
-test:
+test-image:
 	./mvnw clean package -Dmaven.test.skip
-	@echo '=== BUILD DOCKER IMAGE ==='
+	@echo '=== BUILD DOCKER TEST IMAGE ==='
 	docker build \
 		--build-arg WEBAPP_VERSION=${WEBAPP_VERSION} \
 		--build-arg DOCKER_IMAGE_EXPOSE=${DOCKER_IMAGE_EXPOSE} \
@@ -16,12 +16,19 @@ test:
 		--build-arg HOSTUSER=${HOSTUSER} \
 		--tag ${DOCKER_IMAGE_NAME}:test \
 		./webapp
-	@echo '=== STAR PROJECT TESTS ==='
+
+test-only:
 	./mvnw test
 
+test:
+	$(MAKE) test-image
+	@echo '=== STAR PROJECT TESTS ==='
+	$(MAKE) test-only
+
 build:
-	./mvnw clean package
-	@echo '=== BUILD DOCKER IMAGE ==='
+	$(MAKE) test-image
+	./mvnw package
+	@echo '=== BUILD RELEASE DOCKER IMAGE ==='
 	docker build \
         --build-arg WEBAPP_VERSION=${WEBAPP_VERSION} \
         --build-arg DOCKER_IMAGE_EXPOSE=${DOCKER_IMAGE_EXPOSE} \
@@ -30,9 +37,6 @@ build:
         --tag ${DOCKER_IMAGE_NAME}:latest \
 		--tag ${DOCKER_IMAGE_NAME}:${WEBAPP_VERSION} \
 		./webapp
-
-test-only:
-	./mvnw test
 
 run:
 	${JAVA_HOME}/bin/java -jar ./webapp/target/transferservice-webapp-${WEBAPP_VERSION}.jar
