@@ -142,4 +142,18 @@ class AppTransactionControllerApiTest {
         assertEquals(TransactionExceptionCode.TRANSACTION_NOT_FOUND.getId(), result.getBody().getId());
         assertEquals(TransactionExceptionCode.TRANSACTION_NOT_FOUND.getMessage(), result.getBody().getMessage());
     }
+
+    @Test
+    void whenConfirmRequestUUIDMalformed_thenBadRequestWithError() {
+        URI url = ApiTestHelper.createTestUri("confirmOperation", serverPort);
+        HttpEntity<String> apiRequest = ApiTestHelper.createApiRequest(
+                requestFactory.appTransactionConfirmRequest("123"));
+
+        ResponseEntity<AppError> result = testRestTemplate.postForEntity(url, apiRequest, AppError.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertEquals(0, result.getBody().getId());
+        assertNotNull(result.getBody().getMessage());
+    }
 }
